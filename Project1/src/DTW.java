@@ -1,26 +1,91 @@
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.FileSystemNotFoundException;
+import java.util.ArrayList;
+import java.util.Scanner;
 
 public class DTW {
 	public float[] seq1;
 	public float[] seq2;
+	public ArrayList<String> s1;
+	public ArrayList<String> s2;
 	public int[][] warpingPath;
 	public double warpingDistance;
 	public int n;
 	public int m;
 	public int k;
 	
+	public DTW(){
+		this.s1 = new ArrayList<>();
+		this.s2 = new ArrayList<>();
+	}
+	
 	public DTW(float[] sample, float[] template){
 		seq1 = sample;
 		seq2 = template;
+		
+	}
+	public void readFile(String fileName1, String fileName2){
+		try{
+			File f = new File(fileName1);
+			Scanner sc = new Scanner(f);
+			while(sc.hasNextLine()){
+				String data = sc.nextLine();
+				this.s1.add(data);
+			}
+			sc.close();
+		}catch(FileSystemNotFoundException e){
+			System.out.println("Error read file 1");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		try{
+			File f = new File(fileName2);
+			Scanner sc = new Scanner(f);
+			
+			while(sc.hasNextLine()){
+				String data = sc.nextLine();
+				this.s2.add(data);
+			}
+			sc.close();
+		}catch(FileSystemNotFoundException e){
+			System.out.println("Error read file 2");
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	//change list to array
+	public void exchange(){
+        float[] a = new float[s1.size()];
+        float[] b = new float[s2.size()];
+        try{
+        	for (int i = 0; i < s1.size(); i++) {
+				float f = Float.parseFloat(s1.get(i));
+				a[i] = f;
+			}
+        	for (int i = 0; i < s2.size(); i++) {
+				float f = Float.parseFloat(s2.get(i));
+				b[i] = f;
+			}
+        	seq1 = a;
+        	seq2 = b;
+
+        }catch(Exception e){
+        	System.out.println("Error in exchange");
+        }
+	}
+	//compute
+	public void compute(){
+		
 		n = seq1.length;
 		m = seq2.length;
 		k = 1;
 		warpingPath = new int[n + m][2];
 		warpingDistance = 0.0;
-		this.compute();
-	}
-	
-	//compute
-	public void compute(){
+		
 		double accumlateDistance = 0.0;
 		double[][] d = new double[n][m]; //local distances
 		double[][] D = new double[n][m]; //global distances
@@ -42,7 +107,9 @@ public class DTW {
 		for(int i = 1; i < n; i++){
 			for(int j = 1; j < m; j++){
 				accumlateDistance = Math.min(Math.min(D[i - 1][j], D[i  - 1][j - 1]), D[i][j - 1]);
+				
 				accumlateDistance += d[i][j];
+				System.out.println(accumlateDistance);
 				D[i][j] = accumlateDistance;
 			}
 		}
@@ -76,6 +143,8 @@ public class DTW {
 			warpingPath[k - 1][0] = i;
 			warpingPath[k - 1][1] = j;
 		}
+//		System.out.println(accumlateDistance);
+//		System.out.println(k);
 		warpingDistance = accumlateDistance/k;
 		this.reversePath(warpingPath);
 		
@@ -111,7 +180,7 @@ public class DTW {
 	}
 	
 	public String toString(){
-		String reVal = "Warping distance: " + warpingDistance + "\n";
+		String reVal = "Warping distance: " + warpingDistance + "\n\n";
 		reVal += "Warping Path: {";
 		for (int i = 0; i < k; i++){
 			reVal += "(" + warpingPath[i][0] + ", " + warpingPath[i][1] + ")";
